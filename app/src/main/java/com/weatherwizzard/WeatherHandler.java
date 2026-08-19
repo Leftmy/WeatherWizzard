@@ -39,6 +39,7 @@ public class WeatherHandler {
         JSONObject dayData = tomorrow.getJSONObject("day");
 
         Map<String, Object> metrics = new HashMap<>();
+        metrics.put("date", tomorrow.getString("date"));
         metrics.put("mintemp_c", dayData.getDouble("mintemp_c"));
         metrics.put("maxtemp_c", dayData.getDouble("maxtemp_c"));
         metrics.put("avghumidity", dayData.getInt("avghumidity"));
