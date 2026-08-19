@@ -20,6 +20,7 @@ dependencies {
     testImplementation(libs.junit)
 
     // This dependency is used by the application.
+    implementation("org.json:json:20240303")
     implementation(libs.guava)
 }
 

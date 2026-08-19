@@ -11,6 +11,8 @@ public class App {
         WeatherHandler handler = new WeatherHandler();
 
         handler.fetchData(config.getApiKey(), "Kyiv");
+
+        System.out.println(handler.getWeatherMap());
     }
 
     public static void main(String[] args) {
