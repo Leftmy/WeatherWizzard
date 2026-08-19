@@ -10,7 +10,9 @@ public class App {
 
         WeatherHandler handler = new WeatherHandler();
 
-        handler.fetchData(config.getApiKey(), "Kyiv");
+        String[] cities = {"Kyiv", "Amsterdam", "Chisinau", "Madrid"};
+
+        handler.fetchData(config.getApiKey(), cities);
 
         System.out.println(handler.getWeatherMap());
     }

@@ -50,7 +50,7 @@ public class WeatherHandler {
         cityWeatherMap.put(city, metrics);
     }
 
-    public void fetchData(String apiKey, String city) {
+    public void fetchData(String apiKey, String[] cities) {
         if (apiKey == null || apiKey.isBlank()) {
             System.err.println("API key is missing!");
             return;
@@ -58,20 +58,20 @@ public class WeatherHandler {
 
         try {
             HttpClient client = HttpClient.newHttpClient();
+            for (String city: cities){
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(createUri(city, apiKey))
+                        .header("Accept", "application/json")
+                        .build();
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(createUri(city, apiKey))
-                    .header("Accept", "application/json")
-                    .build();
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200) {
-                writeData(city, response.body());
-            } else {
-                System.err.println("Failed to fetch weather data. Status code: " + response.statusCode());
+                if (response.statusCode() == 200) {
+                    writeData(city, response.body());
+                } else {
+                    System.err.println("Failed to fetch weather data. Status code: " + response.statusCode());
+                }
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
