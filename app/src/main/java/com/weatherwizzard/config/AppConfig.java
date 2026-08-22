@@ -7,13 +7,21 @@ import java.util.Properties;
 
 
 public class AppConfig{
-    private String API_KEY;
+    private String apiKey;
 
     public String getApiKey(){
-        return this.API_KEY;
+        return this.apiKey;
     }
 
     public AppConfig(){
+        // First, try to read from environment variable (e.g. when deployed in CI/CD)
+        String envApiKey = System.getenv("WEATHER_API_KEY");
+        if (envApiKey != null && !envApiKey.isBlank()) {
+            this.apiKey = envApiKey;
+            return;
+        }
+
+        // Fallback: read from .env file
         Properties properties = new Properties();
 
         File envFile = new File(".env");
@@ -22,19 +30,10 @@ public class AppConfig{
         }
         
         try (FileInputStream fis = new FileInputStream(envFile)) {
-            // Load the .env file
             properties.load(fis);
-            
-            // Fetch values
-            String apiKey = properties.getProperty("WEATHER_API_KEY");
-
-            this.API_KEY = apiKey;
-
-            System.out.println("Successfully read API Key!");
-            
+            this.apiKey = properties.getProperty("WEATHER_API_KEY");
         } catch (IOException e) {
-            System.out.println(e);
-            System.err.println(".env file not found or unreadable.");
+            System.err.println(".env file not found or unreadable: " + e.getMessage());
         }
     }
 }

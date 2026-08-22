@@ -1,60 +1,47 @@
-
 package com.weatherwizzard;
 
+import com.weatherwizzard.api.WeatherApiClient;
+import com.weatherwizzard.api.WeatherParser;
 import com.weatherwizzard.config.AppConfig;
-import com.weatherwizzard.WeatherHandler;
+import com.weatherwizzard.model.WeatherMetrics;
+import com.weatherwizzard.service.WeatherService;
+
 import java.util.Map;
 
 public class App {
-    public Map<String, Map<String, Object>> runPipeline(){
+
+    private static final String[] CITIES = {"Kyiv", "Amsterdam", "Chisinau", "Madrid"};
+
+    public static void main(String[] args) {
         AppConfig config = new AppConfig();
+        WeatherService service = new WeatherService(new WeatherApiClient(), new WeatherParser());
 
-        WeatherHandler handler = new WeatherHandler();
-
-        String[] cities = {"Kyiv", "Amsterdam", "Chisinau", "Madrid"};
-
-        handler.fetchData(config.getApiKey(), cities);
-
-        return handler.getWeatherMap();
+        Map<String, WeatherMetrics> forecast = service.fetchForecast(config.getApiKey(), CITIES);
+        printTable(forecast);
     }
 
-    public void printTable(Map<String, Map<String, Object>> weatherData) {
+    static void printTable(Map<String, WeatherMetrics> weatherData) {
         if (weatherData == null || weatherData.isEmpty()) {
             System.out.println("No weather data available.");
             return;
         }
 
-        Map<String, Object> firstCityMetrics = weatherData.values().iterator().next();
-        Object dateObj = firstCityMetrics != null ? firstCityMetrics.get("date") : null;
-        String forecastDate = (dateObj != null) ? dateObj.toString() : "N/A";
+        String forecastDate = weatherData.values().iterator().next().date();
+        String separator = "-".repeat(84);
 
+        System.out.println(separator);
         System.out.printf("| %-12s | %-65s |%n", "City", forecastDate + " (Forecast)");
-        System.out.println("-".repeat(84));
+        System.out.println(separator);
 
-        for (Map.Entry<String, Map<String, Object>> entry : weatherData.entrySet()) {
-            String city = entry.getKey();
-            Map<String, Object> m = entry.getValue();
-
-            if (m == null) continue;
-
-            double minTemp = m.get("mintemp_c") instanceof Number ? ((Number) m.get("mintemp_c")).doubleValue() : 0.0;
-            double maxTemp = m.get("maxtemp_c") instanceof Number ? ((Number) m.get("maxtemp_c")).doubleValue() : 0.0;
-            int humidity = m.get("avghumidity") instanceof Number ? ((Number) m.get("avghumidity")).intValue() : 0;
-            double maxWind = m.get("maxwind_kph") instanceof Number ? ((Number) m.get("maxwind_kph")).doubleValue() : 0.0;
-            String windDir = m.get("wind_dir") != null ? m.get("wind_dir").toString() : "N/A";
-
-            String formattedMetrics = String.format(
-                "Min: %.1f deg C | Max: %.1f deg C | Hum: %d%% | Wind: %.1f kph %s",
-                minTemp, maxTemp, humidity, maxWind, windDir
+        for (Map.Entry<String, WeatherMetrics> entry : weatherData.entrySet()) {
+            WeatherMetrics m = entry.getValue();
+            String row = String.format(
+                    "Min: %.1f deg C | Max: %.1f deg C | Hum: %d%% | Wind: %.1f kph %s",
+                    m.minTempC(), m.maxTempC(), m.avgHumidity(), m.maxWindKph(), m.windDir()
             );
-
-            System.out.printf("| %-12s | %-65s |%n", city, formattedMetrics);
+            System.out.printf("| %-12s | %-65s |%n", entry.getKey(), row);
         }
-    }
 
-    public static void main(String[] args) {
-        App app = new App();
-        app.printTable(app.runPipeline());
+        System.out.println(separator);
     }
-
 }
